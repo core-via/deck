@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Grid</title>
+<title>Chat Twitch</title>
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -41,6 +41,8 @@ body{
 .big{
   grid-column:4;
   grid-row:1 / span 4;  
+  color: white;
+  display: block;
 }
 
  .btn {
@@ -322,7 +324,7 @@ body{
 		 console.log(userstate);
 	     const chatBox = document.getElementById('chat');
 		 const div = document.createElement('div');
-		 div.style.backgroundColor = "#a0ffae";
+		 div.style.backgroundColor = "rgb(51 136 64)";
 		 div.innerHTML = `<strong>${username}</strong>: se suscribió`;	     
 		 chatBox.appendChild(div);
 		 const maxMessages = 50;		  
@@ -342,7 +344,7 @@ body{
 	     const chatBox = document.getElementById('chat');
 		 const div = document.createElement('div');
 		 var mens = userstate['system-msg']
-		 div.style.backgroundColor = "#a0ffae";
+		 div.style.backgroundColor = "rgb(51 136 64)";
 		 div.innerHTML = `${mens}. ${renderEmotes(message)}`;	     
 		 chatBox.appendChild(div);
 		 const maxMessages = 50;		  
