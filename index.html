@@ -1,1 +1,105 @@
-hi!
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0e0e0e;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;            
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        /* Container principal */
+        .container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Grid de botones estilo Stream Deck */
+        .deck {
+            display: grid;
+            grid-template-columns: repeat(5, 13rem);
+            grid-template-rows: repeat(5, 9rem);
+            gap: 0.5rem;
+        }
+
+        .deck button {
+            background-color: #1f1f1f;
+            color: #fff;
+            border: 2px solid #333;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .deck button:hover {
+            background-color: #ff6600;
+            border-color: #ff6600;
+        }
+
+        /* Iframe de Twitch */
+        iframe, #twitch-embed {
+            width: 30rem;
+            height: 96vh;
+            border: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Grid de botones estilo Stream Deck -->
+        <div class="deck">
+            <!-- 25 botones para 5x5 -->
+            <button>Botón 1</button>
+            <button>Botón 2</button>
+            <button>Botón 3</button>
+            <button>Botón 4</button>
+            <button>Botón 5</button>
+            <button>Botón 6</button>
+            <button>Botón 7</button>
+            <button>Botón 8</button>
+            <button>Botón 9</button>
+            <button>Botón 10</button>
+            <button>Botón 11</button>
+            <button>Botón 12</button>
+            <button>Botón 13</button>
+            <button>Botón 14</button>
+            <button>Botón 15</button>
+            <button>Botón 16</button>
+            <button>Botón 17</button>
+            <button>Botón 18</button>
+            <button>Botón 19</button>
+            <button>Botón 20</button>
+            <button>Botón 21</button>
+            <button>Botón 22</button>
+            <button>Botón 23</button>
+            <button>Botón 24</button>
+            <button>Botón 25</button>
+        </div>
+
+        <!-- Iframe de Twitch -->
+        <div id="twitch-embed"></div>
+    </div>
+
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+    <script type="text/javascript">
+        const params = new URLSearchParams(window.location.search);
+        const channel = params.get("channel");
+
+        new Twitch.Embed("twitch-embed", {
+            channel: channel,
+            parent: ["core-via.github.io"]
+        });
+    </script>
+</body>
+</html>
