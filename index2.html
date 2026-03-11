@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Twitch + 7TV</title>
+  <title>Chat Twitch</title>
   <style>
     #chat { max-height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; font-family: sans-serif; }
     img.emote { height: 24px; vertical-align: middle; }
@@ -10,13 +10,13 @@
   </style>
 </head>
 <body>
-
+<h2 id="txtChat">Chat: </h2>
 <button id="loginBtn">Conectar con Twitch</button>
 <div id="chat"></div>
 
 <script src="tmi.min.js"></script>
 <script>
-  const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Reemplaza con tu Client ID de Twitch
+  const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Client ID de Twitch
   const redirectUri = window.location.origin + window.location.pathname; // Redirige a la misma página
   const scopes = 'chat:read chat:edit';
 
@@ -182,6 +182,8 @@
     async function initChat() {
 	
 	  var canal = prompt("Canal:");
+	  
+	  document.getElementById("txtChat").textContent = "Chat: " + canal;
 	
 	  const username = canal;
       const channel = canal;
