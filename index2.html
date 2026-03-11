@@ -227,6 +227,11 @@
       });
 	 	  
 	  client.on('subscription', (channel, username, method, message, userstate) => {
+		 console.log(channel);
+		 console.log(username);
+		 console.log(method);		 
+		 console.log(message);
+		 console.log(userstate);
 	     const chatBox = document.getElementById('chat');
 		 const div = document.createElement('div');
 		 div.style.backgroundColor = "#a0ffae";
@@ -240,6 +245,12 @@
       });
 	  
 	  client.on('resub', (channel, username, months, message, userstate, methods) => {
+		 console.log(channel);
+		 console.log(username);
+		 console.log(months);//cuando es con prime no sale la cantidad de meses :c
+		 console.log(message);
+		 console.log(userstate);
+		 console.log(methods);
 	     const chatBox = document.getElementById('chat');
 		 const div = document.createElement('div');
 		 div.style.backgroundColor = "#a0ffae";
