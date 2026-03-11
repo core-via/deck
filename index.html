@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Chat Twitch</title>
+
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+	<style>
+		/* #chat {
+			max-height: 85%;
+			overflow-y: scroll;
+			border: 1px solid #ccc;
+			padding: 10px;
+			font-family: sans-serif;
+		} */
+
+		.emoteImg {
+			height: 2em;
+			vertical-align: middle;
+		}
+	</style>
+	<style>
+		body {
+			margin: 0;
+			font-family: Arial, sans-serif;
+			background: #0e0e10;
+			color: white;
+		}
+
+		/* Contenedor principal */
+		.container {
+			max-width: 100vw;
+			background: #18181b;
+			border-radius: 12px;
+			box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+			padding: 20px;
+		}
+
+		/* Título */
+		#txtChat {
+			text-align: center;
+			font-size: 28px;
+			margin-bottom: 20px;
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		#txtChat:hover {
+			color: #9147ff;
+		}
+
+		/* Botón */
+		#loginBtn {
+			width: 100%;
+			padding: 12px;
+			border: none;
+			border-radius: 8px;
+			background: #9147ff;
+			color: white;
+			font-size: 16px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			transition: 0.3s;
+		}
+
+		#loginBtn:hover {
+			background: #772ce8;
+		}
+
+		#loginBtn img {
+			width: 22px;
+			height: 22px;
+		}
+
+		#loginBtn:hover {
+			background: #772ce8;
+		}
+
+		/* Chat */
+		#chat {
+			margin-top: 20px;
+			height: 75vh;
+			overflow-y: auto;
+			background: #0e0e10;
+			border-radius: 8px;
+			padding: 10px;
+			font-size: 14px;
+			scroll-behavior: smooth;
+		}
+
+		/* Mensajes */
+		.message {
+			margin-bottom: 8px;
+		}
+
+		.username {
+			color: #9147ff;
+			font-weight: bold;
+		}
+
+		/* Para Chrome, Edge, Safari */
+		::-webkit-scrollbar {
+			width: 0px;
+			background: transparent;
+		}
+
+		/* Para Firefox */
+		html {
+			scrollbar-width: none;
+		}
+
+		/* Para IE y Edge antiguo */
+		html {
+			-ms-overflow-style: none;
+		}
+
+		.slider-container {
+			margin-top: 50px;
+		}
+
+		input[type="range"] {
+			width: 300px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h2 onClick="cambiarCanal()" id="txtChat">Chat: </h2>
+
+		<button id="loginBtn">
+			<img src="twitch.png" />
+			Conectar con Twitch</button>
+
+		<div id="chat"></div>
+
+		<div class="slider-container">
+			<input type="range" min="10" max="100" value="20" id="slider">
+		</div>
+	</div>
+</body>
+
+<script>
+	const slider = document.getElementById("slider");
+
+	slider.addEventListener("input", function () {
+		ponerChatSize(slider.value);
+		localStorage.setItem('chatSize', slider.value);
+	});
+
+	function ponerChatSize(size) {
+		const texto = document.getElementById("chat");
+		texto.style.fontSize = size + "px";
+	}
+
+	function ponerChatDef() {
+		var d = localStorage.getItem('chatSize');
+		if (d == null || d == undefined) {
+			d = '14';
+		}
+		const slider = document.getElementById("slider");
+		slider.value = parseInt(d);
+		ponerChatSize(d);
+	}
+</script>
+
+<script src="tmi.min.js"></script>
+
+<script>
+
+	const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Client ID de Twitch
+	const redirectUri = window.location.origin + window.location.pathname; // Redirige a la misma página
+	const scopes = 'chat:read chat:edit';
+
+	const maxMessages = 200;
+	const loginBtn = document.getElementById('loginBtn');
+
+	loginBtn.addEventListener('click', () => {
+		const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scopes)}`;
+		window.location.href = authUrl;
+	});
+
+	// ----- Obtener token desde la URL después del login -----
+	const hash = window.location.hash.substr(1);
+	const params = new URLSearchParams(hash);
+	const token = params.get('access_token');
+
+	var emoteMap = {};
+	var badgeMap = {};
+
+	var client = null;
+
+	// ----- Función para cargar solo 7TV -----
+	async function cargarTodosEmotes() {
+		const res = await fetch("https://emotes.crippled.dev/v1/global/all");
+		const data = await res.json();
+
+		data.forEach(emote => {
+			// Filtrar solo emotes de 7TV (provider === 2)
+			if (emote.provider === 2) {
+				const obj = emote.urls.find(u => u.size === "1x");
+				if (obj && obj.url) {
+					emoteMap[emote.code] = obj.url;
+				}
+			}
+		});
+	}
+
+	function linkify(text) {
+		const urlRegex = /(https?:\/\/[^\s]+)/g;
+		return text.replace(urlRegex, function (url) {
+			return `<a href="${url}" target="_blank" style="color:#4da6ff;">${url}</a>`;
+		});
+	}
+
+	function renderEmotes(msg) {
+		if (msg == null) {
+			return "";
+		}
+
+		msg = linkify(msg);
+
+		// Recorremos todas las claves del emoteMap
+		Object.keys(emoteMap).forEach(code => {
+			const url = emoteMap[code];
+			// Escapamos caracteres especiales para regex
+			const regex = new RegExp(`\\b${escapeRegex(code)}\\b`, "g");
+			// Reemplazamos el texto del emote por la imagen
+			msg = msg.replace(regex, `<img class="emoteImg" src="${url}" alt="${code}" title="${code}">`);
+		});
+		return msg;
+	}
+
+	// Función de escape para caracteres especiales
+	function escapeRegex(str) {
+		return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	}
+
+	async function cargarEmotesCanal7TV(channelName, clientId, token) {
+		try {
+
+			var emote_set_id = localStorage.getItem('emote_set_id_' + channelName);
+			var userId = localStorage.getItem('userId_' + channelName);
+
+			if (emote_set_id == null) {
+				// Obtener user_id desde nombre de usuario
+				const resUser = await fetch(`https://api.twitch.tv/helix/users?login=${channelName}`, {
+					headers: {
+						'Client-ID': clientId,
+						'Authorization': 'Bearer ' + token
+					}
+				});
+
+				if (!resUser.ok) {
+					console.error("Error obteniendo user_id de Twitch:", resUser.status);
+					return;
+				}
+
+				const userData = await resUser.json();
+				if (!userData.data || userData.data.length === 0) {
+					console.error("No se encontró el usuario en Twitch:", channelName);
+					return;
+				}
+
+				const userId = userData.data[0].id;
+
+				localStorage.setItem('userId_' + channelName, userId);
+
+				emote_set_id = await obtenerEmoteSetId(userId);
+
+				localStorage.setItem('emote_set_id_' + channelName, emote_set_id);
+			}
+
+			console.log('emote_set_id => ' + emote_set_id);
+			console.log('userId => ' + userId);
+
+			agregarMensajeSistema('Loading...');
+
+			//Cargar badges
+			const resBadges = await fetch("https://gql.twitch.tv/gql", {
+				method: "POST",
+				headers: {
+
+					'Client-ID': "kimne78kx3ncx6brgo4mv6wki5h1ko",
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify([
+					{
+						operationName: "ChatList_Badges",
+						variables: {
+							channelLogin: channelName
+						},
+						extensions: {
+							persistedQuery: {
+								version: 1,
+								sha256Hash: "838a7e0b47c09cac05f93ff081a9ff4f876b68f7624f0fc465fe30031e372fc2"
+							}
+						}
+					},
+					{
+						operationName: "GlobalBadges",
+						variables: {},
+						extensions: {
+							"persistedQuery": {
+								"version": 1,
+								"sha256Hash": "9db27e18d61ee393ccfdec8c7d90f14f9a11266298c2e5eb808550b77d7bcdf6"
+							}
+						}
+					}
+				])
+			});
+
+			if (resBadges.ok) {
+				const userBadges = await resBadges.json();
+				userBadges[0].data.user.broadcastBadges.forEach(badge => {
+					if (!badgeMap[badge.setID]) {
+						badgeMap[badge.setID] = {};
+					}
+					badgeMap[badge.setID][badge.version] = badge;
+				});
+				userBadges[1].data.badges.forEach(badge => {
+					if (!badgeMap[badge.setID]) {
+						badgeMap[badge.setID] = {};
+					}
+					badgeMap[badge.setID][badge.version] = badge;
+				});
+			}
+
+			try {
+				const res = await fetch(`https://api.7tv.app/v3/emote-sets/${emote_set_id}`);
+
+				if (!res.ok) {
+					console.error("No se pudieron cargar los emotes del canal:", res.status);
+					return;
+				}
+
+				const data = await res.json();
+
+				//console.log(data.emotes[0]);
+
+				data.emotes.forEach(emote => {
+					const host = emote.data?.host;
+					if (!host) return;
+
+					// buscar archivo 1x.webp
+					const file = host.files.find(f => f.name === "1x.webp") || host.files[0];
+
+					if (file) {
+						const url = "https:" + host.url + "/" + file.name;
+						emoteMap[emote.name] = url;
+					}
+				});
+
+				agregarMensajeSistema('Loaded.');
+
+			} catch (err) {
+				console.log("Estado: Error al cargar emotes");
+				//document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes";
+			}
+
+		} catch (err) {
+			console.log("Estado: Error al cargar emotes.");
+			//document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes.";
+		}
+	}
+
+	async function obtenerEmoteSetId(userId) {
+		try {
+			const res = await fetch("https://7tv.io/v3/gql", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					operationName: "GetUserByConnection",
+					variables: {
+						id: userId,
+						platform: "TWITCH"
+					},
+					query: `query GetUserByConnection($platform: ConnectionPlatform!, $id: String!) {
+							user: userByConnection(platform: $platform, id: $id) {
+								id
+								username
+								connections {
+								platform
+								emote_set_id
+								}
+							}
+							}`
+				})
+			});
+
+			if (!res.ok) {
+				console.error("Error obteniendo emote_set_id:", res.status);
+				return null;
+			}
+
+			const data = await res.json();
+			// el emote_set_id de la conexión Twitch
+			const emoteSetId = data?.data?.user?.connections?.find(c => c.platform === "TWITCH")?.emote_set_id;
+			return emoteSetId || null;
+
+		} catch (err) {
+			console.error("Error en obtenerEmoteSetId:", err);
+			return null;
+		}
+	}
+
+	// ----- Inicializar chat solo después de cargar emotes -----
+	async function initChat(canal) {
+
+		const chatBox = document.getElementById('chat');
+		chatBox.innerHTML = "";
+
+		if (client != null) {
+			client.disconnect();
+		}
+
+		if (canal == null || canal == '') {
+			cambiarCanal();
+			return;
+		}
+
+		document.getElementById("txtChat").textContent = canal;
+
+		const username = canal;
+		const channel = canal;
+
+		await cargarEmotesCanal7TV(channel, clientId, token);
+
+		agregarMensajeSistema('Connecting...');
+
+		client = new tmi.Client({
+			connection: { reconnect: true, secure: true },
+			identity: {
+				username: username,
+				password: 'oauth:' + token
+			},
+			channels: [channel]
+		});
+
+		client.connect();
+
+		agregarMensajeSistema('Connected.');
+
+		client.on('message', (channel, tags, message, self) => {
+			if (self) return;
+			let badgesHTML = "";
+			if (tags.badges) {
+				Object.entries(tags.badges).forEach(([setID, version]) => {
+					const badge = badgeMap?.[setID]?.[version];
+					if (badge) {
+						badgesHTML += `<img style='padding-right: 5px;height: 1em;' title='${badge.title}' src="${badge.image1x}" class="badge">`;
+					}
+				});
+			}
+
+			const chatBox = document.getElementById('chat');
+			const div = document.createElement('div');
+
+			//console.log(tags);
+
+			var colorNombre = tags.color;
+
+			colorNombre = lightenColor(tags['display-name'], colorNombre, 0.3);
+
+			if (tags['first-msg']) {
+				div.innerHTML = `${badgesHTML} <strong style='color:${colorNombre}'>${tags['display-name']}</strong>: <span style='background-color:#a1419c'>${renderEmotes(message)}</span>`;
+			}
+			else if (tags.bits) {
+				div.style.backgroundColor = "#878a30";
+				div.innerHTML = `${badgesHTML} <strong style='color:${colorNombre}'>${tags['display-name']}</strong>: Envió ${tags.bits} bits. ${renderEmotes(message)}`;
+			}
+			else {
+				div.innerHTML = `${badgesHTML} <strong style='color:${colorNombre}'>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
+			}
+			chatBox.appendChild(div);
+
+			while (chatBox.children.length > maxMessages) {
+				chatBox.removeChild(chatBox.firstChild);
+			}
+			chatBox.scrollTop = chatBox.scrollHeight;
+		});
+
+		client.on('subscription', (channel, username, method, message, userstate) => {
+			const chatBox = document.getElementById('chat');
+			const div = document.createElement('div');
+			div.style.backgroundColor = "rgb(51 136 64)";
+			div.innerHTML = `<strong>${username}</strong>: se suscribió`;
+			chatBox.appendChild(div);
+
+			while (chatBox.children.length > maxMessages) {
+				chatBox.removeChild(chatBox.firstChild);
+			}
+			chatBox.scrollTop = chatBox.scrollHeight;
+		});
+
+		client.on('resub', (channel, username, months, message, userstate, methods) => {
+			const chatBox = document.getElementById('chat');
+			const div = document.createElement('div');
+			var mens = userstate['system-msg']
+			div.style.backgroundColor = "rgb(51 136 64)";
+			div.innerHTML = `${mens}. ${renderEmotes(message)}`;
+			chatBox.appendChild(div);
+
+			while (chatBox.children.length > maxMessages) {
+				chatBox.removeChild(chatBox.firstChild);
+			}
+			chatBox.scrollTop = chatBox.scrollHeight;
+		});
+	}
+
+	if (token) {
+		loginBtn.style.display = 'none'; // Oculta el botón después de loguear
+		// ----- Ejecutar -----
+		var canal = localStorage.getItem('channel');
+		if (canal == null || canal == '' || canal == undefined) {
+			canal = prompt("Canal:");
+		}
+		localStorage.setItem('channel', canal);
+		ponerChatDef();
+		initChat(canal);
+	}
+
+	function cambiarCanal() {
+		var canal = prompt("Canal:");
+		localStorage.setItem('channel', canal);
+		initChat(canal);
+	}
+
+	let wakeLock = null;
+
+	async function mantenerPantallaEncendida() {
+		try {
+
+			if ('wakeLock' in navigator) {
+				document.addEventListener("click", async () => {
+					await navigator.wakeLock.request('screen');
+				});
+			} else {
+				setInterval(() => {
+					window.dispatchEvent(new Event('mousemove'));
+				}, 20000);
+			}
+
+		} catch (err) {
+			console.error(err);
+			alert(err);
+		}
+	}
+
+	// Activarlo al tocar la pantalla (requerido en móviles)
+	document.addEventListener("click", mantenerPantallaEncendida);
+
+	function agregarMensajeSistema(mensaje) {
+		const chatBox = document.getElementById('chat');
+		const div = document.createElement('div');
+		const badgesHTML = `<img style='padding-right: 5px;height: 1em;' title='System' src="https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1" class="badge">`;
+		div.innerHTML = `${badgesHTML} <strong style='color:white'>System</strong>: ${mensaje}`;
+		chatBox.appendChild(div);
+		while (chatBox.children.length > maxMessages) {
+			chatBox.removeChild(chatBox.firstChild);
+		}
+		chatBox.scrollTop = chatBox.scrollHeight;
+	}
+
+	function getColorFromUsername(username) {
+		const colors = [
+			"#FF0000", "#0000FF", "#008000", "#B22222", "#FF7F50",
+			"#9ACD32", "#FF4500", "#2E8B57", "#DAA520", "#D2691E",
+			"#5F9EA0", "#1E90FF", "#FF69B4", "#8A2BE2", "#00FF7F"
+		];
+
+		let hash = 0;
+		for (let i = 0; i < username.length; i++) {
+			hash = username.charCodeAt(i) + ((hash << 5) - hash);
+		}
+
+		return colors[Math.abs(hash) % colors.length];
+	}
+
+	function lightenColor(username, hex, percent) {
+		if (hex == null) {
+			hex = getColorFromUsername(username);
+		}
+		let num = parseInt(hex.replace("#", ""), 16),
+			r = (num >> 16),
+			g = (num >> 8) & 0x00FF,
+			b = num & 0x0000FF;
+
+		r = Math.min(255, Math.floor(r + (255 - r) * percent));
+		g = Math.min(255, Math.floor(g + (255 - g) * percent));
+		b = Math.min(255, Math.floor(b + (255 - b) * percent));
+
+		return `rgb(${r}, ${g}, ${b})`;
+	}
+
+</script>
+
+
+
+</html>
