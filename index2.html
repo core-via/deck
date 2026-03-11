@@ -34,22 +34,43 @@
 
   if(token) {
     loginBtn.style.display = 'none'; // Oculta el botón después de loguear
-
-    // ----- Cargar emotes globales de 7TV -----
+    
     let emoteMap = {};
-    fetch('https://api.7tv.app/v2/emotes/global')
-      .then(res => res.json())
-      .then(data => {
-        data.forEach(e => emoteMap[e.name] = e.urls['1']);
-      });
+
+	cargarTodosEmotes().then(map => {
+		emoteMap = map;
+	});
+	  
+	async function cargarTodosEmotes() {
+		  const res = await fetch("https://emotes.crippled.dev/v1/global/all");
+		  const data = await res.json();
+
+		  const emoteMap = {};
+
+		  data.forEach(emote => {
+			// usar el tamaño 1x por defecto
+			const obj = emote.urls.find(u => u.size === "1x");
+			if (obj && obj.url) {
+			  emoteMap[emote.code] = obj.url;
+			}
+		  });
+
+		  return emoteMap;
+	}
 
     function renderEmotes(msg) {
-      Object.keys(emoteMap).forEach(name => {
+      /*Object.keys(emoteMap).forEach(name => {
         const url = emoteMap[name];
         const regex = new RegExp(`\\b${name}\\b`, 'g');
         msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${name}">`);
       });
-      return msg;
+      return msg;*/
+	  Object.keys(emoteMap).forEach(code => {
+		const url = emoteMap[code];
+		const regex = new RegExp(`\\b${code}\\b`, "g");
+		msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${code}">`);
+	  });
+	  return msg;
     }
 
     // ----- Conectar tmi.js -----
