@@ -11,6 +11,7 @@
 </head>
 <body>
 <h2 id="txtChat">Chat: </h2>
+<h2 id="txtEstado">Estado: </h2>
 <button id="loginBtn">Conectar con Twitch</button>
 <div id="chat"></div>
 
@@ -127,8 +128,12 @@
 			console.log("Cantidad de emotes:", total);
 			console.log(emoteMap);
 			
+			document.getElementById("txtEstado").textContent = "Estado: Emotes cargados";
+			
 		  } catch(err) {
 			console.error("Error cargando emotes del canal:", err);
+			
+			document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes";
 		  }
 		
 	  } catch(err) {
@@ -202,20 +207,49 @@
 
       client.connect();
 
-      client.on('message', (channel, tags, message, self) => {
-        if(self) return;
+      client.on('message', (channel, tags, message, self) => {		
+        if(self) return;		
         const chatBox = document.getElementById('chat');
         const div = document.createElement('div');
-        div.innerHTML = `<strong>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
-        chatBox.appendChild(div);
-		
-		const maxMessages = 50;
-		  
+		if (tags.bits) {			
+			div.style.backgroundColor = "#fbff85";
+			div.innerHTML = `<strong>${tags['display-name']}</strong>: Envió ${tags.bits} bits. ${renderEmotes(message)}`;
+		}
+		else{
+			div.innerHTML = `<strong>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
+		}        
+        chatBox.appendChild(div);		
+		const maxMessages = 50;		  
 		while (chatBox.children.length > maxMessages) {
 		 chatBox.removeChild(chatBox.firstChild);
-		}
-		
+		}		
         chatBox.scrollTop = chatBox.scrollHeight;
+      });
+	 	  
+	  client.on('subscription', (channel, username, method, message, userstate) => {
+	     const chatBox = document.getElementById('chat');
+		 const div = document.createElement('div');
+		 div.style.backgroundColor = "#a0ffae";
+		 div.innerHTML = `<strong>${username}</strong>: se suscribió`;	     
+		 chatBox.appendChild(div);
+		 const maxMessages = 50;		  
+		 while (chatBox.children.length > maxMessages) {
+		     chatBox.removeChild(chatBox.firstChild);
+		 }		
+		 chatBox.scrollTop = chatBox.scrollHeight;
+      });
+	  
+	  client.on('resub', (channel, username, months, message, userstate, methods) => {
+	     const chatBox = document.getElementById('chat');
+		 const div = document.createElement('div');
+		 div.style.backgroundColor = "#a0ffae";
+		 div.innerHTML = `<strong>${username}</strong>: Renovó su sub (${months} meses)`;	     
+		 chatBox.appendChild(div);
+		 const maxMessages = 50;		  
+		 while (chatBox.children.length > maxMessages) {
+		     chatBox.removeChild(chatBox.firstChild);
+		 }		
+		 chatBox.scrollTop = chatBox.scrollHeight;
       });
     }
 
