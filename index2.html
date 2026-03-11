@@ -105,15 +105,21 @@
 			  console.error("No se pudieron cargar los emotes del canal:", res.status);
 			  return;
 			}
+			
 			const data = await res.json();
-			 data.emotes.forEach(emote => {
-			  // La URL está dentro de emote.data.urls
-			  const urls = emote.data?.urls;
-			  if(!urls) return;
+			
+			console.log(data.emotes[0]);
+			
+			data.emotes.forEach(emote => {
+			  const host = emote.data?.host;
+			  if(!host) return;
 
-			  const obj = urls.find(u => u[0] === 1) || urls[0];
-			  if (obj && obj[1]) {
-			    emoteMap[emote.name] = obj[1];
+			  // buscar archivo 1x.webp
+			  const file = host.files.find(f => f.name === "1x.webp") || host.files[0];
+
+			  if(file) {
+				const url = "https:" + host.url + "/" + file.name;
+				emoteMap[emote.name] = url;
 			  }
 			});
 
