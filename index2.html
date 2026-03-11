@@ -68,16 +68,48 @@
       return msg;
     }
 	
-	async function cargarEmotesCanal7TV(twitchUserId) {
-	  const res = await fetch(`https://7tv.io/v3/users/twitch/${twitchUserId}/emotes`);
-	  const data = await res.json();
+	async function cargarEmotesCanal7TV(channelName, clientId, token) {
+	  try {
+		// 1️⃣ Obtener user_id desde nombre de usuario
+		const resUser = await fetch(`https://api.twitch.tv/helix/users?login=${channelName}`, {
+		  headers: {
+			'Client-ID': clientId,
+			'Authorization': 'Bearer ' + token
+		  }
+		});
 
-	  data.emotes.forEach(emote => {
-		const obj = emote.urls.find(u => u.size === "1x");
-		if(obj && obj.url) {
-		  emoteMap[emote.name] = obj.url; // agrega al mismo emoteMap
+		if(!resUser.ok) {
+		  console.error("Error obteniendo user_id de Twitch:", resUser.status);
+		  return;
 		}
-	  });
+
+		const userData = await resUser.json();
+		if(!userData.data || userData.data.length === 0) {
+		  console.error("No se encontró el usuario en Twitch:", channelName);
+		  return;
+		}
+
+		const userId = userData.data[0].id;
+
+		// 2️⃣ Obtener emotes de 7TV usando el ID
+		const res7tv = await fetch(`https://7tv.io/v3/users/twitch/${userId}/emotes`);
+		if(!res7tv.ok) {
+		  console.error("Error cargando emotes de 7TV del canal:", res7tv.status);
+		  return;
+		}
+
+		const data = await res7tv.json();
+		data.emotes.forEach(emote => {
+		  const obj = emote.urls.find(u => u.size === "1x");
+		  if(obj && obj.url) {
+			emoteMap[emote.name] = obj.url; // agrega al mismo emoteMap
+		  }
+		});
+
+		console.log(`Emotes 7TV del canal ${channelName} cargados:`, data.emotes.length);
+	  } catch(err) {
+		console.error("Error en cargarEmotesCanal7TV:", err);
+	  }
 	}
 
     // ----- Inicializar chat solo después de cargar emotes -----
@@ -87,7 +119,7 @@
       const channel = 'rubius';
 	
       await cargarTodosEmotes(); // Espera a que los emotes 7TV estén listos
-	  await cargarEmotesCanal7TV(channel); // canal específico		
+	  await cargarEmotesCanal7TV(channel, clientId, token); // canal específico		
       
       const client = new tmi.Client({
         options: { debug: true },
