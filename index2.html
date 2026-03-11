@@ -90,25 +90,73 @@
 		}
 
 		const userId = userData.data[0].id;
-
-		// 2️⃣ Obtener emotes de 7TV usando el ID
-		const res7tv = await fetch(`https://7tv.io/v3/users/twitch/${userId}/emotes`);
-		if(!res7tv.ok) {
-		  console.error("Error cargando emotes de 7TV del canal:", res7tv.status);
-		  return;
-		}
-
-		const data = await res7tv.json();
-		data.emotes.forEach(emote => {
-		  const obj = emote.urls.find(u => u.size === "1x");
-		  if(obj && obj.url) {
-			emoteMap[emote.name] = obj.url; // agrega al mismo emoteMap
+		
+		const emote_set_id = await obtenerEmoteSetId(channelName);
+		
+		console.log('emote_set_id => ' + emote_set_id);
+		
+		try {
+			const res = await fetch(`https://7tv.app/api/v3/emote-sets/${emoteSetId}`);
+			if(!res.ok) {
+			  console.error("No se pudieron cargar los emotes del canal:", res.status);
+			  return;
+			}
+			const data = await res.json();
+			data.emotes.forEach(emote => {
+			  const obj = emote.urls.find(u => u[0] === 1); // tamaño 1x
+			  if(obj && obj[1]) {
+				emoteMap[emote.name] = obj[1];
+			  }
+			});
+			console.log(`Emotes del canal cargados: ${data.emotes.length}`);
+		  } catch(err) {
+			console.error("Error cargando emotes del canal:", err);
 		  }
-		});
-
-		console.log(`Emotes 7TV del canal ${channelName} cargados:`, data.emotes.length);
+		
 	  } catch(err) {
 		console.error("Error en cargarEmotesCanal7TV:", err);
+	  }
+	}
+	
+	async function obtenerEmoteSetId(userId) {
+	  try {
+		const res = await fetch("https://7tv.io/v3/gqly", {
+		  method: "POST",
+		  headers: {
+			"Content-Type": "application/json"
+		  },
+		  body: JSON.stringify({
+			operationName: "GetUserByConnection",
+			variables: {
+			  id: userId,
+			  platform: "TWITCH"
+			},
+			query: `query GetUserByConnection($platform: ConnectionPlatform!, $id: String!) {
+			  user: userByConnection(platform: $platform, id: $id) {
+				id
+				username
+				connections {
+				  platform
+				  emote_set_id
+				}
+			  }
+			}`
+		  })
+		});
+
+		if(!res.ok) {
+		  console.error("Error obteniendo emote_set_id:", res.status);
+		  return null;
+		}
+
+		const data = await res.json();
+		// el emote_set_id de la conexión Twitch
+		const emoteSetId = data?.data?.user?.connections?.find(c => c.platform === "TWITCH")?.emote_set_id;
+		return emoteSetId || null;
+
+	  } catch(err) {
+		console.error("Error en obtenerEmoteSetId:", err);
+		return null;
 	  }
 	}
 
