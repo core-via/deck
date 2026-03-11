@@ -37,63 +37,67 @@
     
     let emoteMap = {};
 
-	cargarTodosEmotes().then(map => {
-		emoteMap = map;
-	});
-	  
-	async function cargarTodosEmotes() {
-		  const res = await fetch("https://emotes.crippled.dev/v1/global/all");
-		  const data = await res.json();
+    // ----- Función para cargar solo 7TV -----
+    async function cargarTodosEmotes() {
+      const res = await fetch("https://emotes.crippled.dev/v1/global/all");
+      const data = await res.json();
 
-		  const emoteMap = {};
+      data.forEach(emote => {
+        // Filtrar solo emotes de 7TV (provider === 2)
+        if(emote.provider === 2) {
+          const obj = emote.urls.find(u => u.size === "1x");
+          if(obj && obj.url) {
+            emoteMap[emote.code] = obj.url;
+          }
+        }
+      });
+    }
 
-		  data.forEach(emote => {
-			// usar el tamaño 1x por defecto
-			const obj = emote.urls.find(u => u.size === "1x");
-			if (obj && obj.url) {
-			  emoteMap[emote.code] = obj.url;
-			}
-		  });
+    // ----- Función para escapar caracteres especiales -----
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
 
-		  return emoteMap;
-	}
-
+    // ----- Función para renderizar los emotes en los mensajes -----
     function renderEmotes(msg) {
       Object.keys(emoteMap).forEach(code => {
-		const url = emoteMap[code];
-		const regex = new RegExp(`\\b${escapeRegex(code)}\\b`, "g");
-		msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${code}">`);
-	  });
-	  return msg;
+        const url = emoteMap[code];
+        const regex = new RegExp(`\\b${escapeRegex(code)}\\b`, "g");
+        msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${code}">`);
+      });
+      return msg;
     }
-	
-	function escapeRegex(str) {
-	  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	}
 
-    // ----- Conectar tmi.js -----
-    const username = 'rubius'; // Reemplaza con tu nombre de usuario o del canal
-    const channel = 'rubius';    // Canal a mostrar
-    const client = new tmi.Client({
-      options: { debug: true },
-      connection: { reconnect: true, secure: true },
-      identity: {
-        username: username,
-        password: 'oauth:' + token
-      },
-      channels: [ channel ]
-    });
+    // ----- Inicializar chat solo después de cargar emotes -----
+    async function initChat() {
+      await cargarTodosEmotes(); // Espera a que los emotes 7TV estén listos
 
-    client.connect();
+      const username = 'rubius';
+      const channel = 'rubius';
+      const client = new tmi.Client({
+        options: { debug: true },
+        connection: { reconnect: true, secure: true },
+        identity: {
+          username: username,
+          password: 'oauth:' + token
+        },
+        channels: [ channel ]
+      });
 
-    client.on('message', (channel, tags, message, self) => {
-      if(self) return;
-      const chatBox = document.getElementById('chat');
-      const div = document.createElement('div');
-      div.innerHTML = `<strong>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
+      client.connect();
+
+      client.on('message', (channel, tags, message, self) => {
+        if(self) return;
+        const chatBox = document.getElementById('chat');
+        const div = document.createElement('div');
+        div.innerHTML = `<strong>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    }
+
+    // ----- Ejecutar -----
+    initChat();
   }
 </script>
 
