@@ -104,12 +104,18 @@
 			  return;
 			}
 			const data = await res.json();
-			data.emotes.forEach(emote => {
-			  const obj = emote.urls.find(u => u[0] === 1); // tamaño 1x
+			 data.emotes.forEach(emote => {
+			  // La URL está dentro de emote.data.urls
+			  const urls = emote.data?.urls;
+			  if(!urls) return;
+
+			  // Elegimos tamaño 1x
+			  const obj = urls.find(u => u[0] === 1);
 			  if(obj && obj[1]) {
 				emoteMap[emote.name] = obj[1];
 			  }
 			});
+
 			console.log(`Emotes del canal cargados: ${data.emotes.length}`);
 		  } catch(err) {
 			console.error("Error cargando emotes del canal:", err);
