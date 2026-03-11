@@ -11,7 +11,7 @@
 </head>
 <body>
 <h2 id="txtChat">Chat: </h2>
-<h2 id="txtEstado">Estado: </h2>
+<h2 id="txtEstado">h2>
 <button id="loginBtn">Conectar con Twitch</button>
 <div id="chat"></div>
 
@@ -128,7 +128,7 @@
 			console.log("Cantidad de emotes:", total);
 			console.log(emoteMap);
 			
-			document.getElementById("txtEstado").textContent = "Estado: Emotes cargados";
+			//document.getElementById("txtEstado").textContent = "Estado: Emotes cargados";
 			
 		  } catch(err) {
 			console.error("Error cargando emotes del canal:", err);
@@ -253,8 +253,9 @@
 		 console.log(methods);
 	     const chatBox = document.getElementById('chat');
 		 const div = document.createElement('div');
+		 var mens = userstate['system-msg']
 		 div.style.backgroundColor = "#a0ffae";
-		 div.innerHTML = `<strong>${username}</strong>: Renovó su sub (${months} meses)`;	     
+		 div.innerHTML = `${mens}. ${renderEmotes(message)}`;	     
 		 chatBox.appendChild(div);
 		 const maxMessages = 50;		  
 		 while (chatBox.children.length > maxMessages) {
