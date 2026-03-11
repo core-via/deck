@@ -48,7 +48,7 @@ body{
 			margin: 3px;
         }
 
-        .btn:hover {
+        .btn:hover:active {
             background-color: #8f8f8f;
             border-color: #8f8f8f;
         }
@@ -68,7 +68,10 @@ body{
 
 <div class="grid">
 
-  <div class="cell big" id="twitch-embed"></div>
+  <div class="cell big">  
+	<iframe id="twitch-chat">
+	</iframe>  
+  </div>
 
   <div class="cell btn">1</div>
   <div class="cell btn">2</div>
@@ -83,22 +86,22 @@ body{
   <div class="cell btn">9</div>
   <div class="cell btn">10</div>
   <div class="cell btn">11</div>
-  <div class="cell btn" style="font-size:60px;">
-	<span class="material-icons" style="font-size:50px;">settings</span>
+  <div class="cell btn">
+	<span class="material-icons" style="font-size:60px;">settings</span>
   </div>
 
 </div>
 
-	<script src="https://embed.twitch.tv/embed/v1.js"></script>
-    <script type="text/javascript">
-        const params = new URLSearchParams(window.location.search);
-        const channel = params.get("channel");
-
-        new Twitch.Embed("twitch-embed", {
-            channel: channel,
-            parent: ["core-via.github.io"]
-        });
-    </script>
+	
+   <script>
+document.addEventListener("DOMContentLoaded", function() {
+    const params = new URLSearchParams(window.location.search);
+    const channel = params.get("channel");		
+    const domain = "core-via.github.io";
+    const iframe = document.getElementById("twitch-chat");
+    iframe.src = `https://www.twitch.tv/embed/${channel}/chat?parent=${domain}&theme=dark`;
+});
+</script>
 
 </body>
 </html>
