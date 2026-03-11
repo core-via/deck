@@ -67,13 +67,28 @@
       });
       return msg;
     }
+	
+	async function cargarEmotesCanal7TV(twitchUserId) {
+	  const res = await fetch(`https://7tv.io/v3/users/twitch/${twitchUserId}/emotes`);
+	  const data = await res.json();
+
+	  data.emotes.forEach(emote => {
+		const obj = emote.urls.find(u => u.size === "1x");
+		if(obj && obj.url) {
+		  emoteMap[emote.name] = obj.url; // agrega al mismo emoteMap
+		}
+	  });
+	}
 
     // ----- Inicializar chat solo después de cargar emotes -----
     async function initChat() {
-      await cargarTodosEmotes(); // Espera a que los emotes 7TV estén listos
-
-      const username = 'rubius';
+	
+	  const username = 'rubius';
       const channel = 'rubius';
+	
+      await cargarTodosEmotes(); // Espera a que los emotes 7TV estén listos
+	  await cargarEmotesCanal7TV(channel); // canal específico		
+      
       const client = new tmi.Client({
         options: { debug: true },
         connection: { reconnect: true, secure: true },
