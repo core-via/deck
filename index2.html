@@ -111,15 +111,17 @@
 			  const urls = emote.data?.urls;
 			  if(!urls) return;
 
-			  // Elegimos tamaño 1x
-			  const obj = urls.find(u => u[0] === 1);
-			  if(obj && obj[1]) {
-				emoteMap[emote.name] = obj[1];
+			  const obj = urls.find(u => u[0] === 1) || urls[0];
+			  if (obj && obj[1]) {
+			    emoteMap[emote.name] = obj[1];
 			  }
 			});
 
 			console.log(`Emotes del canal cargados: ${data.emotes.length}`);
+			const total = Object.keys(emoteMap).length;
+			console.log("Cantidad de emotes:", total);
 			console.log(emoteMap);
+			
 		  } catch(err) {
 			console.error("Error cargando emotes del canal:", err);
 		  }
@@ -177,7 +179,7 @@
 	  const username = 'rubius';
       const channel = 'rubius';
 	
-      await cargarTodosEmotes(); // Espera a que los emotes 7TV estén listos
+      //await cargarTodosEmotes(); // Espera a que los emotes 7TV estén listos
 	  await cargarEmotesCanal7TV(channel, clientId, token); // canal específico		
       
       const client = new tmi.Client({
