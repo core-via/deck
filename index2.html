@@ -53,20 +53,22 @@
       });
     }
 
-    // ----- Función para escapar caracteres especiales -----
-    function escapeRegex(str) {
-      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-
-    // ----- Función para renderizar los emotes en los mensajes -----
     function renderEmotes(msg) {
-      Object.keys(emoteMap).forEach(code => {
-        const url = emoteMap[code];
-        const regex = new RegExp(`\\b${escapeRegex(code)}\\b`, "g");
-        msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${code}">`);
-      });
-      return msg;
-    }
+	  // Recorremos todas las claves del emoteMap
+	  Object.keys(emoteMap).forEach(code => {
+		const url = emoteMap[code];
+		// Escapamos caracteres especiales para regex
+		const regex = new RegExp(`\\b${escapeRegex(code)}\\b`, "g");
+		// Reemplazamos el texto del emote por la imagen
+		msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${code}">`);
+	  });
+	  return msg;
+	}
+
+	// Función de escape para caracteres especiales
+	function escapeRegex(str) {
+	  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	}
 	
 	async function cargarEmotesCanal7TV(channelName, clientId, token) {
 	  try {
