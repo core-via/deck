@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Twitch + 7TV</title>
+  <style>
+    #chat { max-height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; font-family: sans-serif; }
+    img.emote { height: 24px; vertical-align: middle; }
+    button { padding: 10px 20px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>Chat Twitch con 7TV</h2>
+<button id="loginBtn">Conectar con Twitch</button>
+<div id="chat"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js"></script>
+<script>
+  const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Reemplaza con tu Client ID de Twitch
+  const redirectUri = window.location.origin + window.location.pathname; // Redirige a la misma página
+  const scopes = 'chat:read chat:edit';
+
+  const loginBtn = document.getElementById('loginBtn');
+  loginBtn.addEventListener('click', () => {
+    const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scopes)}`;
+    window.location.href = authUrl;
+  });
+
+  // ----- Obtener token desde la URL después del login -----
+  const hash = window.location.hash.substr(1);
+  const params = new URLSearchParams(hash);
+  const token = params.get('access_token');
+
+  if(token) {
+    loginBtn.style.display = 'none'; // Oculta el botón después de loguear
+
+    // ----- Cargar emotes globales de 7TV -----
+    let emoteMap = {};
+    fetch('https://api.7tv.app/v2/emotes/global')
+      .then(res => res.json())
+      .then(data => {
+        data.forEach(e => emoteMap[e.name] = e.urls['1']);
+      });
+
+    function renderEmotes(msg) {
+      Object.keys(emoteMap).forEach(name => {
+        const url = emoteMap[name];
+        const regex = new RegExp(`\\b${name}\\b`, 'g');
+        msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${name}">`);
+      });
+      return msg;
+    }
+
+    // ----- Conectar tmi.js -----
+    const username = 'rubius'; // Reemplaza con tu nombre de usuario o del canal
+    const channel = 'rubius';    // Canal a mostrar
+    const client = new tmi.Client({
+      options: { debug: true },
+      connection: { reconnect: true, secure: true },
+      identity: {
+        username: username,
+        password: 'oauth:' + token
+      },
+      channels: [ channel ]
+    });
+
+    client.connect();
+
+    client.on('message', (channel, tags, message, self) => {
+      if(self) return;
+      const chatBox = document.getElementById('chat');
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+  }
+</script>
+
+</body>
+</html>
