@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
-    #chat { max-height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; font-family: sans-serif; }
+    #chat { max-height: 85%; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; font-family: sans-serif; }
     img.emote { height: 24px; vertical-align: middle; }
     button { padding: 10px 20px; margin-bottom: 10px; }
   </style>
@@ -302,7 +302,7 @@ body{
         const chatBox = document.getElementById('chat');
         const div = document.createElement('div');
 		if (tags.bits) {			
-			div.style.backgroundColor = "#fbff85";
+			div.style.backgroundColor = "#878a30";
 			div.innerHTML = `<strong>${tags['display-name']}</strong>: Envió ${tags.bits} bits. ${renderEmotes(message)}`;
 		}
 		else{
@@ -316,12 +316,7 @@ body{
         chatBox.scrollTop = chatBox.scrollHeight;
       });
 	 	  
-	  client.on('subscription', (channel, username, method, message, userstate) => {
-		 console.log(channel);
-		 console.log(username);
-		 console.log(method);		 
-		 console.log(message);
-		 console.log(userstate);
+	  client.on('subscription', (channel, username, method, message, userstate) => {		 
 	     const chatBox = document.getElementById('chat');
 		 const div = document.createElement('div');
 		 div.style.backgroundColor = "rgb(51 136 64)";
@@ -334,13 +329,7 @@ body{
 		 chatBox.scrollTop = chatBox.scrollHeight;
       });
 	  
-	  client.on('resub', (channel, username, months, message, userstate, methods) => {
-		 console.log(channel);
-		 console.log(username);
-		 console.log(months);//cuando es con prime no sale la cantidad de meses :c
-		 console.log(message);
-		 console.log(userstate);
-		 console.log(methods);
+	  client.on('resub', (channel, username, months, message, userstate, methods) => {		 
 	     const chatBox = document.getElementById('chat');
 		 const div = document.createElement('div');
 		 var mens = userstate['system-msg']
