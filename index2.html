@@ -98,7 +98,7 @@
 		console.log('emote_set_id => ' + emote_set_id);
 		
 		try {
-			const res = await fetch(`https://7tv.app/api/v3/emote-sets/${emote_set_id}`);
+			const res = await fetch(`https://api.7tv.app/v3/emote-sets/${emote_set_id}`);
 			if(!res.ok) {
 			  console.error("No se pudieron cargar los emotes del canal:", res.status);
 			  return;
