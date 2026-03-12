@@ -121,7 +121,8 @@
 		const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Client ID de Twitch
 		const redirectUri = window.location.origin + window.location.pathname; // Redirige a la misma página
 		const scopes = 'chat:read chat:edit';
-
+		
+		const maxMessages = 200;
 		const loginBtn = document.getElementById('loginBtn');
 
 		loginBtn.addEventListener('click', () => {
@@ -394,7 +395,7 @@
 					div.innerHTML = `${badgesHTML} <strong style='color:${tags.color}'>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
 				}
 				chatBox.appendChild(div);
-				const maxMessages = 50;
+				
 				while (chatBox.children.length > maxMessages) {
 					chatBox.removeChild(chatBox.firstChild);
 				}
@@ -407,7 +408,7 @@
 				div.style.backgroundColor = "rgb(51 136 64)";
 				div.innerHTML = `<strong>${username}</strong>: se suscribió`;
 				chatBox.appendChild(div);
-				const maxMessages = 50;
+				
 				while (chatBox.children.length > maxMessages) {
 					chatBox.removeChild(chatBox.firstChild);
 				}
@@ -421,7 +422,7 @@
 				div.style.backgroundColor = "rgb(51 136 64)";
 				div.innerHTML = `${mens}. ${renderEmotes(message)}`;
 				chatBox.appendChild(div);
-				const maxMessages = 50;
+				
 				while (chatBox.children.length > maxMessages) {
 					chatBox.removeChild(chatBox.firstChild);
 				}
