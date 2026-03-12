@@ -1,353 +1,453 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<title>Chat Twitch</title>
+	<meta charset="UTF-8">
+	<title>Chat Twitch</title>
 
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<style>
-    #chat { max-height: 85%; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; font-family: sans-serif; }
-    img.emote { height: 24px; vertical-align: middle; }
-    button { padding: 10px 20px; margin-bottom: 10px; }
-  </style>
+	<style>
+		#chat {
+			max-height: 85%;
+			overflow-y: scroll;
+			border: 1px solid #ccc;
+			padding: 10px;
+			font-family: sans-serif;
+		}
 
-<style>
+		img.emote {
+			height: 24px;
+			vertical-align: middle;
+		}
 
-body{
-  margin:0;
-  background-color: black;
-}
+		button {
+			padding: 10px 20px;
+			margin-bottom: 10px;
+		}
+	</style>
 
-.grid{
-  display:grid;
-  width:100vw;
-  height:100vh;
+	<style>
+		body {
+			margin: 0;
+			background-color: black;
+		}
 
-  /* 5 columnas iguales + 40% la última */
-  grid-template-columns: repeat(3, 1fr) 40%;
+		.grid {
+			display: grid;
+			width: 100vw;
+			height: 100vh;
 
-  grid-template-rows: repeat(4, 1fr);
-}
+			/* 5 columnas iguales + 40% la última */
+			grid-template-columns: repeat(3, 1fr) 40%;
 
-.cell{
-  border:1px solid #999;
-  display:flex;
-  align-items:center;
-  justify-content:center;  
-}
+			grid-template-rows: repeat(4, 1fr);
+		}
 
-/* Celda grande */
-.big{
-  grid-column:4;
-  grid-row:1 / span 4;  
-  color: white;
-  display: block;
-}
+		.cell {
+			border: 1px solid #999;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 
- .btn {
-            background-color: #1f1f1f;
-            color: #fff;
-            border: 2px solid #333;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
+		/* Celda grande */
+		.big {
+			grid-column: 4;
+			grid-row: 1 / span 4;
+			color: white;
+			display: block;
+		}
+
+		.btn {
+			background-color: #1f1f1f;
+			color: #fff;
+			border: 2px solid #333;
+			border-radius: 8px;
+			font-size: 0.8rem;
+			cursor: pointer;
+			transition: all 0.2s ease;
 			margin: 3px;
-        }
+		}
 
-        .btn:hover:active {
-            background-color: #8f8f8f;
-            border-color: #8f8f8f;
-        }
+		.btn:hover:active {
+			background-color: #8f8f8f;
+			border-color: #8f8f8f;
+		}
 
-/* Iframe de Twitch */
-        iframe, #twitch-embed {
-            width: 99%;
-            height: 99%;
+		/* Iframe de Twitch */
+		iframe,
+		#twitch-embed {
+			width: 99%;
+			height: 99%;
 			border: none;
-            border-radius: 8px;
-        }
-
-</style>
+			border-radius: 8px;
+		}
+	</style>
 </head>
 
 <body>
 
-<div class="grid">
+	<div class="grid">
 
-  <div class="cell big">  
-	<h2 id="txtChat">Chat: </h2>
-	<h2 id="txtEstado"></h2>
-	<button id="loginBtn">Conectar con Twitch</button>
-	<div id="chat"></div>
-  </div>
+		<div class="cell big">
+			<h2 onClick="cambiarCanal()" style="text-align: center;font-size: 35px;" id="txtChat">Chat: </h2>
+			<h2 id="txtEstado"></h2>
+			<button id="loginBtn">Conectar con Twitch</button>
+			<div id="chat"></div>
+		</div>
 
-  <div class="cell btn">1</div>
-  <div class="cell btn">2</div>
-  <div class="cell btn">3</div>
-  
-  <div class="cell btn">4</div>
-  <div class="cell btn">5</div>
-  <div class="cell btn">6</div>
-  <div class="cell btn">7</div>
-  
-  <div class="cell btn">8</div> 
-  <div class="cell btn">9</div>
-  <div class="cell btn">10</div>
-  <div class="cell btn">11</div>
-  <div class="cell btn">
-	<span class="material-icons" style="font-size:60px;">settings</span>
-  </div>
+		<div class="cell btn">1</div>
+		<div class="cell btn">2</div>
+		<div class="cell btn">3</div>
 
-</div>
+		<div class="cell btn">4</div>
+		<div class="cell btn">5</div>
+		<div class="cell btn">6</div>
+		<div class="cell btn">7</div>
 
-<script src="tmi.min.js"></script>
-<script>
-  const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Client ID de Twitch
-  const redirectUri = window.location.origin + window.location.pathname; // Redirige a la misma página
-  const scopes = 'chat:read chat:edit';
+		<div class="cell btn">8</div>
+		<div class="cell btn">9</div>
+		<div class="cell btn">10</div>
+		<div class="cell btn">11</div>
+		<div class="cell btn">12</div>
 
-  const loginBtn = document.getElementById('loginBtn');
-  loginBtn.addEventListener('click', () => {
-    const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scopes)}`;
-    window.location.href = authUrl;
-  });
+	</div>
 
-  // ----- Obtener token desde la URL después del login -----
-  const hash = window.location.hash.substr(1);
-  const params = new URLSearchParams(hash);
-  const token = params.get('access_token');
+	<script src="tmi.min.js"></script>
 
-  if(token) {
-    loginBtn.style.display = 'none'; // Oculta el botón después de loguear
-    
-    let emoteMap = {};
+	<script>
 
-    // ----- Función para cargar solo 7TV -----
-    async function cargarTodosEmotes() {
-      const res = await fetch("https://emotes.crippled.dev/v1/global/all");
-      const data = await res.json();
+		const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Client ID de Twitch
+		const redirectUri = window.location.origin + window.location.pathname; // Redirige a la misma página
+		const scopes = 'chat:read chat:edit';
 
-      data.forEach(emote => {
-        // Filtrar solo emotes de 7TV (provider === 2)
-        if(emote.provider === 2) {
-          const obj = emote.urls.find(u => u.size === "1x");
-          if(obj && obj.url) {
-            emoteMap[emote.code] = obj.url;
-          }
-        }
-      });
-    }
+		const loginBtn = document.getElementById('loginBtn');
 
-    function renderEmotes(msg) {
-		if(msg==null){
-			return "";
-		}
-	  // Recorremos todas las claves del emoteMap
-	  Object.keys(emoteMap).forEach(code => {
-		const url = emoteMap[code];
-		// Escapamos caracteres especiales para regex
-		const regex = new RegExp(`\\b${escapeRegex(code)}\\b`, "g");
-		// Reemplazamos el texto del emote por la imagen
-		msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${code}">`);
-	  });
-	  return msg;
-	}
-
-	// Función de escape para caracteres especiales
-	function escapeRegex(str) {
-	  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	}
-	
-	async function cargarEmotesCanal7TV(channelName, clientId, token) {
-	  try {
-		// 1️⃣ Obtener user_id desde nombre de usuario
-		const resUser = await fetch(`https://api.twitch.tv/helix/users?login=${channelName}`, {
-		  headers: {
-			'Client-ID': clientId,
-			'Authorization': 'Bearer ' + token
-		  }
+		loginBtn.addEventListener('click', () => {
+			const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scopes)}`;
+			window.location.href = authUrl;
 		});
 
-		if(!resUser.ok) {
-		  console.error("Error obteniendo user_id de Twitch:", resUser.status);
-		  return;
-		}
+		// ----- Obtener token desde la URL después del login -----
+		const hash = window.location.hash.substr(1);
+		const params = new URLSearchParams(hash);
+		const token = params.get('access_token');
 
-		const userData = await resUser.json();
-		if(!userData.data || userData.data.length === 0) {
-		  console.error("No se encontró el usuario en Twitch:", channelName);
-		  return;
-		}
+		var emoteMap = {};
+		var badgeMap = {};
 
-		const userId = userData.data[0].id;
-		
-		console.log('userId => ' + userId);
-		
-		const emote_set_id = await obtenerEmoteSetId(userId);
-		
-		console.log('emote_set_id => ' + emote_set_id);
-		
-		try {
-			const res = await fetch(`https://api.7tv.app/v3/emote-sets/${emote_set_id}`);
-			if(!res.ok) {
-			  console.error("No se pudieron cargar los emotes del canal:", res.status);
-			  return;
-			}
-			
+		var client = null;
+
+		// ----- Función para cargar solo 7TV -----
+		async function cargarTodosEmotes() {
+			const res = await fetch("https://emotes.crippled.dev/v1/global/all");
 			const data = await res.json();
-			
-			console.log(data.emotes[0]);
-			
-			data.emotes.forEach(emote => {
-			  const host = emote.data?.host;
-			  if(!host) return;
 
-			  // buscar archivo 1x.webp
-			  const file = host.files.find(f => f.name === "1x.webp") || host.files[0];
+			data.forEach(emote => {
+				// Filtrar solo emotes de 7TV (provider === 2)
+				if (emote.provider === 2) {
+					const obj = emote.urls.find(u => u.size === "1x");
+					if (obj && obj.url) {
+						emoteMap[emote.code] = obj.url;
+					}
+				}
+			});
+		}
 
-			  if(file) {
-				const url = "https:" + host.url + "/" + file.name;
-				emoteMap[emote.name] = url;
-			  }
+		function renderEmotes(msg) {
+			if (msg == null) {
+				return "";
+			}
+			// Recorremos todas las claves del emoteMap
+			Object.keys(emoteMap).forEach(code => {
+				const url = emoteMap[code];
+				// Escapamos caracteres especiales para regex
+				const regex = new RegExp(`\\b${escapeRegex(code)}\\b`, "g");
+				// Reemplazamos el texto del emote por la imagen
+				msg = msg.replace(regex, `<img class="emote" src="${url}" alt="${code}">`);
+			});
+			return msg;
+		}
+
+		// Función de escape para caracteres especiales
+		function escapeRegex(str) {
+			return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		}
+
+		async function cargarEmotesCanal7TV(channelName, clientId, token) {
+			try {
+
+				var emote_set_id = localStorage.getItem('emote_set_id_' + channelName);
+				var userId = localStorage.getItem('userId_' + channelName);
+
+				if (emote_set_id == null) {
+					// Obtener user_id desde nombre de usuario
+					const resUser = await fetch(`https://api.twitch.tv/helix/users?login=${channelName}`, {
+						headers: {
+							'Client-ID': clientId,
+							'Authorization': 'Bearer ' + token
+						}
+					});
+
+					if (!resUser.ok) {
+						console.error("Error obteniendo user_id de Twitch:", resUser.status);
+						return;
+					}
+
+					const userData = await resUser.json();
+					if (!userData.data || userData.data.length === 0) {
+						console.error("No se encontró el usuario en Twitch:", channelName);
+						return;
+					}
+
+					const userId = userData.data[0].id;
+
+					localStorage.setItem('userId_' + channelName, userId);
+
+					emote_set_id = await obtenerEmoteSetId(userId);
+
+					localStorage.setItem('emote_set_id_' + channelName, emote_set_id);
+				}
+
+				console.log('emote_set_id => ' + emote_set_id);
+				console.log('userId => ' + userId);
+
+				//Cargar badges
+				const resBadges = await fetch("https://gql.twitch.tv/gql", {
+					method: "POST",
+					headers: {
+
+						'Client-ID': "kimne78kx3ncx6brgo4mv6wki5h1ko",
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify([
+						{
+							operationName: "ChatList_Badges",
+							variables: {
+								channelLogin: channelName
+							},
+							extensions: {
+								persistedQuery: {
+									version: 1,
+									sha256Hash: "838a7e0b47c09cac05f93ff081a9ff4f876b68f7624f0fc465fe30031e372fc2"
+								}
+							}
+						},
+						{
+							operationName: "GlobalBadges",
+							variables: {},
+							extensions: {
+								"persistedQuery": {
+									"version": 1,
+									"sha256Hash": "9db27e18d61ee393ccfdec8c7d90f14f9a11266298c2e5eb808550b77d7bcdf6"
+								}
+							}
+						}
+					])
+				});
+
+				if (resBadges.ok) {
+					const userBadges = await resBadges.json();
+					userBadges[0].data.user.broadcastBadges.forEach(badge => {
+						if (!badgeMap[badge.setID]) {
+							badgeMap[badge.setID] = {};
+						}
+						badgeMap[badge.setID][badge.version] = badge;
+					});
+					userBadges[1].data.badges.forEach(badge => {
+						if (!badgeMap[badge.setID]) {
+							badgeMap[badge.setID] = {};
+						}
+						badgeMap[badge.setID][badge.version] = badge;
+					});
+				}
+
+				try {
+					const res = await fetch(`https://api.7tv.app/v3/emote-sets/${emote_set_id}`);
+
+					if (!res.ok) {
+						console.error("No se pudieron cargar los emotes del canal:", res.status);
+						return;
+					}
+
+					const data = await res.json();
+
+					//console.log(data.emotes[0]);
+
+					data.emotes.forEach(emote => {
+						const host = emote.data?.host;
+						if (!host) return;
+
+						// buscar archivo 1x.webp
+						const file = host.files.find(f => f.name === "1x.webp") || host.files[0];
+
+						if (file) {
+							const url = "https:" + host.url + "/" + file.name;
+							emoteMap[emote.name] = url;
+						}
+					});
+
+				} catch (err) {
+					document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes";
+				}
+
+			} catch (err) {
+				document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes.";
+			}
+		}
+
+		async function obtenerEmoteSetId(userId) {
+			try {
+				const res = await fetch("https://7tv.io/v3/gql", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						operationName: "GetUserByConnection",
+						variables: {
+							id: userId,
+							platform: "TWITCH"
+						},
+						query: `query GetUserByConnection($platform: ConnectionPlatform!, $id: String!) {
+							user: userByConnection(platform: $platform, id: $id) {
+								id
+								username
+								connections {
+								platform
+								emote_set_id
+								}
+							}
+							}`
+					})
+				});
+
+				if (!res.ok) {
+					console.error("Error obteniendo emote_set_id:", res.status);
+					return null;
+				}
+
+				const data = await res.json();
+				// el emote_set_id de la conexión Twitch
+				const emoteSetId = data?.data?.user?.connections?.find(c => c.platform === "TWITCH")?.emote_set_id;
+				return emoteSetId || null;
+
+			} catch (err) {
+				console.error("Error en obtenerEmoteSetId:", err);
+				return null;
+			}
+		}
+
+		// ----- Inicializar chat solo después de cargar emotes -----
+		async function initChat(canal) {
+
+			const chatBox = document.getElementById('chat');
+			chatBox.innerHTML = "";
+
+			if (client != null) {
+				client.disconnect();
+			}
+
+			if (canal == null || canal == '') {
+				cambiarCanal();
+				return;
+			}
+
+			document.getElementById("txtChat").textContent = canal;
+
+			const username = canal;
+			const channel = canal;
+
+			await cargarEmotesCanal7TV(channel, clientId, token);
+
+			client = new tmi.Client({
+				connection: { reconnect: true, secure: true },
+				identity: {
+					username: username,
+					password: 'oauth:' + token
+				},
+				channels: [channel]
 			});
 
-			console.log(`Emotes del canal cargados: ${data.emotes.length}`);
-			const total = Object.keys(emoteMap).length;
-			console.log("Cantidad de emotes:", total);
-			console.log(emoteMap);
-			
-			//document.getElementById("txtEstado").textContent = "Estado: Emotes cargados";
-			
-		  } catch(err) {
-			console.error("Error cargando emotes del canal:", err);
-			
-			document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes";
-		  }
-		
-	  } catch(err) {
-		console.error("Error en cargarEmotesCanal7TV:", err);
-	  }
-	}
-	
-	async function obtenerEmoteSetId(userId) {
-	  try {
-		const res = await fetch("https://7tv.io/v3/gql", {
-		  method: "POST",
-		  headers: {
-			"Content-Type": "application/json"
-		  },
-		  body: JSON.stringify({
-			operationName: "GetUserByConnection",
-			variables: {
-			  id: userId,
-			  platform: "TWITCH"
-			},
-			query: `query GetUserByConnection($platform: ConnectionPlatform!, $id: String!) {
-			  user: userByConnection(platform: $platform, id: $id) {
-				id
-				username
-				connections {
-				  platform
-				  emote_set_id
+			client.connect();
+
+			client.on('message', (channel, tags, message, self) => {
+				if (self) return;
+				let badgesHTML = "";
+				if (tags.badges) {
+					Object.entries(tags.badges).forEach(([setID, version]) => {
+						const badge = badgeMap?.[setID]?.[version];
+						if (badge) {
+							badgesHTML += `<img style='padding-right: 5px;' title='${badge.title}' src="${badge.image1x}" class="badge">`;
+						}
+					});
 				}
-			  }
-			}`
-		  })
-		});
 
-		if(!res.ok) {
-		  console.error("Error obteniendo emote_set_id:", res.status);
-		  return null;
+				const chatBox = document.getElementById('chat');
+				const div = document.createElement('div');
+				if (tags.bits) {
+					div.style.backgroundColor = "#878a30";
+					div.innerHTML = `${badgesHTML} <strong style='color:${tags.color}'>${tags['display-name']}</strong>: Envió ${tags.bits} bits. ${renderEmotes(message)}`;
+				}
+				else {
+					div.innerHTML = `${badgesHTML} <strong style='color:${tags.color}'>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
+				}
+				chatBox.appendChild(div);
+				const maxMessages = 50;
+				while (chatBox.children.length > maxMessages) {
+					chatBox.removeChild(chatBox.firstChild);
+				}
+				chatBox.scrollTop = chatBox.scrollHeight;
+			});
+
+			client.on('subscription', (channel, username, method, message, userstate) => {
+				const chatBox = document.getElementById('chat');
+				const div = document.createElement('div');
+				div.style.backgroundColor = "rgb(51 136 64)";
+				div.innerHTML = `<strong>${username}</strong>: se suscribió`;
+				chatBox.appendChild(div);
+				const maxMessages = 50;
+				while (chatBox.children.length > maxMessages) {
+					chatBox.removeChild(chatBox.firstChild);
+				}
+				chatBox.scrollTop = chatBox.scrollHeight;
+			});
+
+			client.on('resub', (channel, username, months, message, userstate, methods) => {
+				const chatBox = document.getElementById('chat');
+				const div = document.createElement('div');
+				var mens = userstate['system-msg']
+				div.style.backgroundColor = "rgb(51 136 64)";
+				div.innerHTML = `${mens}. ${renderEmotes(message)}`;
+				chatBox.appendChild(div);
+				const maxMessages = 50;
+				while (chatBox.children.length > maxMessages) {
+					chatBox.removeChild(chatBox.firstChild);
+				}
+				chatBox.scrollTop = chatBox.scrollHeight;
+			});
 		}
 
-		const data = await res.json();
-		// el emote_set_id de la conexión Twitch
-		const emoteSetId = data?.data?.user?.connections?.find(c => c.platform === "TWITCH")?.emote_set_id;
-		return emoteSetId || null;
-
-	  } catch(err) {
-		console.error("Error en obtenerEmoteSetId:", err);
-		return null;
-	  }
-	}
-
-    // ----- Inicializar chat solo después de cargar emotes -----
-    async function initChat() {
-	
-	  var canal = prompt("Canal:");
-	  
-	  document.getElementById("txtChat").textContent = "Chat: " + canal;
-	
-	  const username = canal;
-      const channel = canal;
-      
-	  await cargarEmotesCanal7TV(channel, clientId, token);
-      
-      const client = new tmi.Client({
-        options: { debug: true },
-        connection: { reconnect: true, secure: true },
-        identity: {
-          username: username,
-          password: 'oauth:' + token
-        },
-        channels: [ channel ]
-      });
-
-      client.connect();
-
-      client.on('message', (channel, tags, message, self) => {		
-        if(self) return;		
-        const chatBox = document.getElementById('chat');
-        const div = document.createElement('div');
-		if (tags.bits) {			
-			div.style.backgroundColor = "#878a30";
-			div.innerHTML = `<strong>${tags['display-name']}</strong>: Envió ${tags.bits} bits. ${renderEmotes(message)}`;
+		if (token) {
+			loginBtn.style.display = 'none'; // Oculta el botón después de loguear
+			// ----- Ejecutar -----
+			var canal = localStorage.getItem('channel');
+			if (canal == null || canal == '' || canal == undefined) {
+				canal = prompt("Canal:");
+			}
+			localStorage.setItem('channel', canal);
+			initChat(canal);
 		}
-		else{
-			div.innerHTML = `<strong>${tags['display-name']}</strong>: ${renderEmotes(message)}`;
-		}        
-        chatBox.appendChild(div);		
-		const maxMessages = 50;		  
-		while (chatBox.children.length > maxMessages) {
-		 chatBox.removeChild(chatBox.firstChild);
-		}		
-        chatBox.scrollTop = chatBox.scrollHeight;
-      });
-	 	  
-	  client.on('subscription', (channel, username, method, message, userstate) => {		 
-	     const chatBox = document.getElementById('chat');
-		 const div = document.createElement('div');
-		 div.style.backgroundColor = "rgb(51 136 64)";
-		 div.innerHTML = `<strong>${username}</strong>: se suscribió`;	     
-		 chatBox.appendChild(div);
-		 const maxMessages = 50;		  
-		 while (chatBox.children.length > maxMessages) {
-		     chatBox.removeChild(chatBox.firstChild);
-		 }		
-		 chatBox.scrollTop = chatBox.scrollHeight;
-      });
-	  
-	  client.on('resub', (channel, username, months, message, userstate, methods) => {		 
-	     const chatBox = document.getElementById('chat');
-		 const div = document.createElement('div');
-		 var mens = userstate['system-msg']
-		 div.style.backgroundColor = "rgb(51 136 64)";
-		 div.innerHTML = `${mens}. ${renderEmotes(message)}`;	     
-		 chatBox.appendChild(div);
-		 const maxMessages = 50;		  
-		 while (chatBox.children.length > maxMessages) {
-		     chatBox.removeChild(chatBox.firstChild);
-		 }		
-		 chatBox.scrollTop = chatBox.scrollHeight;
-      });
-    }
 
-    // ----- Ejecutar -----
-    initChat();
-  }
-</script>
+		function cambiarCanal() {
+			var canal = prompt("Canal:");
+			localStorage.setItem('channel', canal);
+			initChat(canal);
+		}
+
+	</script>
 
 </body>
+
 </html>
