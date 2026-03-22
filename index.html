@@ -243,6 +243,39 @@
 		return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 	}
 
+	async function cargarEmotesCanalTwitch(channelName, clientId, token) {
+		try {
+			var userId = localStorage.getItem('userId_' + channelName);
+			const response = await fetch('https://api.twitch.tv/helix/chat/emotes?broadcaster_id=' + userId, {
+				method: 'GET',
+				headers: {
+					'Authorization': 'Bearer ' + token,
+					'Client-Id': clientId
+				}
+			});
+
+			const data = await response.json();
+			console.log(data);
+
+
+			// data.data.forEach(emote => {
+			// 	const host = emote.data?.host;
+			// 	if (!host) return;
+
+			// 	// buscar archivo 1x.webp
+			// 	const file = host.files.find(f => f.name === "1x.webp") || host.files[0];
+
+			// 	if (file) {
+			// 		const url = "https:" + host.url + "/" + file.name;
+			// 		emoteMap[emote.name] = url;
+			// 	}
+			// });
+
+		} catch (error) {
+			console.error('Error:', error);
+		}
+	}
+
 	async function cargarEmotesCanal7TV(channelName, clientId, token) {
 		try {
 
@@ -437,6 +470,7 @@
 		const channel = canal;
 
 		await cargarEmotesCanal7TV(channel, clientId, token);
+		await cargarEmotesCanalTwitch(channel, clientId, token);
 
 		agregarMensajeSistema('Connecting...');
 
