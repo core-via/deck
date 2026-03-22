@@ -173,6 +173,8 @@
 
 <script>
 
+	var isLoading = true;
+
 	const clientId = 'of03md4jk4n8vthy9xxaw5yjfok27n'; // Client ID de Twitch
 	const redirectUri = window.location.origin + window.location.pathname; // Redirige a la misma página
 	const scopes = 'chat:read chat:edit';
@@ -414,6 +416,8 @@
 	// ----- Inicializar chat solo después de cargar emotes -----
 	async function initChat(canal) {
 
+		isLoading = true;
+
 		const chatBox = document.getElementById('chat');
 		chatBox.innerHTML = "";
 
@@ -421,8 +425,7 @@
 			client.disconnect();
 		}
 
-		if (canal == null || canal == '') {
-			cambiarCanal();
+		if (canal == null || canal == '') {			
 			return;
 		}
 
@@ -447,6 +450,8 @@
 		client.connect();
 
 		agregarMensajeSistema('Connected.');
+
+		isLoading = false;
 
 		client.on('message', (channel, tags, message, self) => {
 			if (self) return;
@@ -528,6 +533,9 @@
 	}
 
 	function cambiarCanal() {
+		if(isLoading){
+			return;
+		}
 		var canal = prompt("Canal:");
 		localStorage.setItem('channel', canal);
 		initChat(canal);
