@@ -246,6 +246,8 @@
 	async function cargarEmotesCanal7TV(channelName, clientId, token) {
 		try {
 
+			agregarMensajeSistema('Loading...');
+
 			var emote_set_id = localStorage.getItem('emote_set_id_' + channelName);
 			var userId = localStorage.getItem('userId_' + channelName);
 
@@ -278,10 +280,8 @@
 				localStorage.setItem('emote_set_id_' + channelName, emote_set_id);
 			}
 
-			console.log('emote_set_id => ' + emote_set_id);
-			console.log('userId => ' + userId);
-
-			agregarMensajeSistema('Loading...');
+			//console.log('emote_set_id => ' + emote_set_id);
+			//console.log('userId => ' + userId);
 
 			//Cargar badges
 			const resBadges = await fetch("https://gql.twitch.tv/gql", {
@@ -358,8 +358,6 @@
 					}
 				});
 
-				agregarMensajeSistema('Loaded.');
-
 			} catch (err) {
 				console.log("Estado: Error al cargar emotes");
 				//document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes";
@@ -369,6 +367,8 @@
 			console.log("Estado: Error al cargar emotes.");
 			//document.getElementById("txtEstado").textContent = "Estado: Error al cargar emotes.";
 		}
+
+		agregarMensajeSistema('Loaded.');
 	}
 
 	async function obtenerEmoteSetId(userId) {
