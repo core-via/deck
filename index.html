@@ -425,7 +425,7 @@
 			client.disconnect();
 		}
 
-		if (canal == null || canal == '') {
+		if (canal == null || canal == '' || canal == 'null') {
 			document.getElementById("txtChat").textContent = 'Click to change channel!';
 			isLoading = false;
 			return;
