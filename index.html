@@ -425,7 +425,7 @@
 			client.disconnect();
 		}
 
-		if (canal == null || canal == '') {			
+		if (canal == null || canal == '') {
 			return;
 		}
 
@@ -533,7 +533,8 @@
 	}
 
 	function cambiarCanal() {
-		if(isLoading){
+		if (isLoading) {
+			agregarMensajeSistema("Still loading...");
 			return;
 		}
 		var canal = prompt("Canal:");
