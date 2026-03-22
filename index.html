@@ -131,7 +131,7 @@
 
 <body>
 	<div class="container">
-		<h2 onClick="cambiarCanal()" id="txtChat">Chat: </h2>
+		<h2 onClick="cambiarCanal()" id="txtChat">Click to change channel!</h2>
 
 		<button id="loginBtn">
 			<img src="twitch.png" />
@@ -426,6 +426,8 @@
 		}
 
 		if (canal == null || canal == '') {
+			document.getElementById("txtChat").textContent = 'Click to change channel!';
+			isLoading = false;
 			return;
 		}
 
