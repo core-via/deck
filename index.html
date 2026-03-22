@@ -254,22 +254,12 @@
 				}
 			});
 
-			const data = await response.json();
-			console.log(data);
+			const emotesJson = await response.json();
 
-
-			// data.data.forEach(emote => {
-			// 	const host = emote.data?.host;
-			// 	if (!host) return;
-
-			// 	// buscar archivo 1x.webp
-			// 	const file = host.files.find(f => f.name === "1x.webp") || host.files[0];
-
-			// 	if (file) {
-			// 		const url = "https:" + host.url + "/" + file.name;
-			// 		emoteMap[emote.name] = url;
-			// 	}
-			// });
+			emotesJson.data.forEach(emote => {
+				const url = emote.images.url_1x;
+				emoteMap[emote.name] = url;
+			});
 
 		} catch (error) {
 			console.error('Error:', error);
